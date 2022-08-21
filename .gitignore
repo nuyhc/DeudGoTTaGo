@@ -132,6 +132,9 @@ dmypy.json
 *.csv
 *.pdf
 *.xlsx
+*.txt
+
+*.npz
 
 *.png
 *.jpg
