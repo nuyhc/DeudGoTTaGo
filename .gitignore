@@ -141,6 +141,7 @@ dmypy.json
 
 *.mp3
 *.wav
+*.mid
 
 *.avi
 *.mp4
