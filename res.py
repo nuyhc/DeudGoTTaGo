@@ -1,3 +1,5 @@
+# Refer:  https://paperswithcode.com/paper/residual-shuffle-exchange-networks-for-fast#code Aroksak/RSE repo.
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,16 +39,10 @@ class ShuffleLayer(nn.Module):
 
     @staticmethod
     def ror(x, n, p=1):
-        """Bitwise rotation right p positions
-        n is the bit length of the number
-        """
         return (x >> p) + ((x & ((1 << p) - 1)) << (n - p))
 
     @staticmethod
     def rol(x, n, p=1):
-        """Bitwise rotation left p positions
-        n is the bit length of the number
-        """
         return ((x << p) & ((1 << n) - 1)) | (x >> (n - p))
 
     def forward(self, x):

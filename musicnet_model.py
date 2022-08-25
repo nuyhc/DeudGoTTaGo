@@ -1,5 +1,6 @@
-import torch.nn as nn
+# Refer:  https://paperswithcode.com/paper/residual-shuffle-exchange-networks-for-fast#code Aroksak/RSE repo.
 
+import torch.nn as nn
 from rse import ResidualShuffleExchangeNetwork
 
 
@@ -26,9 +27,9 @@ class MusicNetModel(nn.Module):
         self.post_linear = nn.Linear(192, 128)
 
     def forward(self, x):
-        x = self.conv1(x)   # B x C x L
+        x = self.conv1(x)
         x = self.conv2(x)
-        x = x.permute(0, 2, 1)  # B x L x C
+        x = x.permute(0, 2, 1)
         x = self.pre_linear(x)
         x = self.rse(x)
         x = self.post_linear(x)

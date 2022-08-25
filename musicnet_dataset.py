@@ -1,3 +1,5 @@
+# Refer:  https://paperswithcode.com/paper/residual-shuffle-exchange-networks-for-fast#code Aroksak/RSE repo.
+
 from __future__ import print_function
 
 import csv
@@ -7,40 +9,23 @@ import os
 import os.path
 import pickle
 from subprocess import call
-
 import numpy as np
 import torch.utils.data as data
 from intervaltree import IntervalTree
 from scipy.io import wavfile
 
-sz_float = 4  # size of a float
-epsilon = 10e-8  # fudge factor for normalization
+sz_float = 4
+epsilon = 10e-8
 
 
 class MusicNet(data.Dataset):
-    """`MusicNet <http://homes.cs.washington.edu/~thickstn/musicnet.html>`_ Dataset.
-    Args:
-        root (string): Root directory of dataset
-        train (bool, optional): If True, creates dataset from ``train_data``,
-            otherwise from ``test_data``.
-        download (bool, optional): If true, downloads the dataset from the internet and
-            puts it in root directory. If dataset is already downloaded, it is not
-            downloaded again.
-        mmap (bool, optional): If true, mmap the dataset for faster access times.
-        normalize (bool, optional): If true, rescale input vectors to unit norm.
-        window (int, optional): Size in samples of a data point.
-        pitch_shift (int,optional): Integral pitch-shifting transformations.
-        jitter (int, optional): Continuous pitch-jitter transformations.
-        epoch_size (int, optional): Designated Number of samples for an "epoch"
-    """
     url = "https://zenodo.org/record/5120004/files/musicnet.tar.gz"
     raw_folder = 'raw'
     train_data, train_labels, train_tree = 'train_data', 'train_labels', 'train_tree.pckl'
     test_data, test_labels, test_tree = 'test_data', 'test_labels', 'test_tree.pckl'
     extracted_folders = [train_data, train_labels, test_data, test_labels]
 
-    def __init__(self, root, train=True, download=False, refresh_cache=False, mmap=True, normalize=True, window=16384,
-                 pitch_shift=0, jitter=0., epoch_size=100000):
+    def __init__(self, root, train=True, download=False, refresh_cache=False, mmap=True, normalize=True, window=16384, pitch_shift=0, jitter=0., epoch_size=100000):
         self.refresh_cache = refresh_cache
         self.mmap = mmap
         self.normalize = normalize
@@ -99,16 +84,6 @@ class MusicNet(data.Dataset):
             self.open_files = []
 
     def access(self, rec_id, s, shift=0, jitter=0):
-        """
-        Args:
-            rec_id (int): MusicNet id of the requested recording
-            s (int): Position of the requested data point
-            shift (int, optional): Integral pitch-shift data transformation
-            jitter (float, optional): Continuous pitch-jitter data transformation
-        Returns:
-            tuple: (audio, target) where target is a binary vector indicating notes on at the center of the audio.
-        """
-
         scale = 2. ** ((shift + jitter) / 12.)
 
         if self.mmap:
@@ -136,13 +111,6 @@ class MusicNet(data.Dataset):
         return x, y
 
     def __getitem__(self, index):
-        """
-        Args:
-            index (int): (ignored by this dataset; a random data point is returned)
-        Returns:
-            tuple: (audio, target) where target is a binary vector indicating notes on at the center of the audio.
-        """
-
         shift = 0
         if self.pitch_shift > 0:
             shift = np.random.randint(-self.pitch_shift, self.pitch_shift)
@@ -166,13 +134,11 @@ class MusicNet(data.Dataset):
                not self.refresh_cache
 
     def download(self):
-        """Download the MusicNet data if it doesn't exist in ``raw_folder`` already."""
         from six.moves import urllib
 
         if self._check_exists():
             return
 
-        # download files
         try:
             os.makedirs(os.path.join(self.root, self.raw_folder))
         except OSError as e:
@@ -187,7 +153,6 @@ class MusicNet(data.Dataset):
             print('Downloading ' + self.url)
             data = urllib.request.urlopen(self.url)
             with open(file_path, 'wb') as f:
-                # stream the download to disk (it might not fit in memory!)
                 while True:
                     chunk = data.read(16 * 1024)
                     if not chunk:
@@ -199,7 +164,6 @@ class MusicNet(data.Dataset):
             if call(["tar", "-xf", file_path, '-C', self.root, '--strip', '1']) != 0:
                 raise OSError("Failed tarball extraction")
 
-        # process and save as torch files
         print('Processing...')
 
         self.process_data(self.test_data)
@@ -217,7 +181,6 @@ class MusicNet(data.Dataset):
         self.refresh_cache = False
         print('Download Complete')
 
-    # write out wavfiles as arrays for direct mmap access
     def process_data(self, path):
         for item in os.listdir(os.path.join(self.root, path)):
             if not item.endswith('.wav'):
@@ -226,7 +189,6 @@ class MusicNet(data.Dataset):
             _, data = wavfile.read(os.path.join(self.root, path, item))
             data.tofile(os.path.join(self.root, path, item[:-4] + '.bin'))
 
-    # wite out labels in intervaltrees for fast access
     def process_labels(self, path):
         trees = dict()
         for item in os.listdir(os.path.join(self.root, path)):
