@@ -145,3 +145,7 @@ dmypy.json
 
 *.avi
 *.mp4
+
+*.DS_Store
+
+!template/*/*
